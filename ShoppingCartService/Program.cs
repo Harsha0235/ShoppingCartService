@@ -1,9 +1,7 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.OpenApi.Models;
 using ShoppingCartService.Data;
-using ShoppingCartService.Data.Repositories;
-using ShoppingCartService.Middleware;
 using ShoppingCartService.Services;
+using ShoppingCartService.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,13 +10,15 @@ builder.Services.AddControllers();
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-builder.Services.AddScoped<ICartRepository, CartRepository>();
-builder.Services.AddScoped<IShoppingCartService, ShoppingService>();
+builder.Services.AddScoped<IItemService, ItemService>();
+builder.Services.AddScoped<ICartService, CartService>();
 
 // Configure Swagger
+builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Shopping Cart API", Version = "v1" });
+    c.SwaggerDoc("Admin", new Microsoft.OpenApi.Models.OpenApiInfo { Title = "Admin API", Version = "v1" });
+    c.SwaggerDoc("User", new Microsoft.OpenApi.Models.OpenApiInfo { Title = "User API", Version = "v1" });
 });
 
 var app = builder.Build();
@@ -27,11 +27,15 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/Admin/swagger.json", "Admin API");
+        c.SwaggerEndpoint("/swagger/User/swagger.json", "User API");
+    });
 }
 
 app.UseHttpsRedirection();
-app.UseMiddleware<ErrorHandlingMiddleware>();
+app.UseAuthorization();
 app.MapControllers();
 
 app.Run();

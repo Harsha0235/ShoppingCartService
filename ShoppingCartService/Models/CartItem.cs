@@ -5,15 +5,11 @@ namespace ShoppingCartService.Models
     public class CartItem
     {
         public int Id { get; set; }
+        public int ItemId { get; set; }
+        public Item Item { get; set; }
 
-        [Required]
-        [StringLength(100)]
-        public string Name { get; set; }
-
-        [Range(0.01, 10000)]
-        public decimal Price { get; set; }
-
-        [Range(1, 100)]
+        [Required(ErrorMessage = "Please specify the quantity.")]
+        [Range(1, 100, ErrorMessage = "You can add between 1 and 100 items to your cart.")]
         public int Quantity { get; set; }
     }
 }
